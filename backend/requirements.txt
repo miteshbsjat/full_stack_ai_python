@@ -1,0 +1,43 @@
+# Flask and Extensions
+flask==2.3.3
+flask-cors==4.0.0
+flask-sqlalchemy==3.1.1
+flask-migrate==4.0.5
+flask-login==0.6.2
+flask-session==0.5.0
+python-dotenv==1.0.0
+werkzeug==2.3.7  # For password hashing
+psycopg2-binary==2.9.7
+
+# Document Processing
+PyPDF2==3.0.1
+python-magic==0.4.27
+
+# Machine Learning
+numpy<2.0
+torch==2.0.1
+transformers==4.47.1
+sentence-transformers==3.3.1
+huggingface-hub==0.27.1
+
+# Task Queue
+celery==5.3.4
+redis==5.0.0
+
+# Testing
+pytest==7.4.2
+
+# Development
+black==23.7.0
+flake8==6.1.0
+
+# Gunicorn
+gunicorn==21.2.0
+
+# System Monitoring
+psutil==5.9.8
+
+# Pycryptodome
+pycryptodome==3.19.0 
+scikit-learn==1.6.0
+numpy==1.26.4
