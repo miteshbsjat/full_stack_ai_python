@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+
+{% block title %}Documents{% endblock %}
+
+{% block styles %}
+<style>
+    .search-results {
+        position: absolute;
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        z-index: 1000;
+        display: none;
+    }
+    .search-result-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #eee;
+        cursor: pointer;
+    }
+    .search-result-item:hover {
+        background-color: #f8f9fa;
+    }
+    .highlight {
+        background-color: yellow;
+        padding: 0 2px;
+    }
+    .similarity-score {
+        float: right;
+        padding: 2px 6px;
+        background-color: #e9ecef;
+        border-radius: 3px;
+        font-size: 0.8em;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>Your Documents</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('documents.create') }}" class="btn btn-primary">Upload New Document</a>
+    </div>
+</div>
+
+<!-- Search Form with Dropdown -->
+<div class="row mb-4">
+    <div class="col-md-8 mx-auto">
+        <div class="position-relative">
+            <form method="GET" action="{{ url_for('documents.search') }}" class="d-flex" id="searchForm">
+                <input type="text" 
+                       name="query" 
+                       id="searchInput" 
+                       class="form-control me-2" 
+                       placeholder="Search in your documents..." 
+                       value="{{ request.args.get('query', '') }}"
+                       autocomplete="off">
+                <button type="submit" class="btn btn-outline-primary">Search</button>
+            </form>
+            <div class="search-results" id="searchResults"></div>
+        </div>
+    </div>
+</div>
+
+{% if documents %}
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Filename</th>
+                    <th>Type</th>
+                    <th>Size</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in documents %}
+                <tr>
+                    <td>{{ doc.filename }}</td>
+                    <td>{{ doc.file_type }}</td>
+                    <td>{{ doc.size|filesizeformat }}</td>
+                    <td>
+                        <span class="badge {% if doc.status == 'pending' %}bg-warning{% elif doc.status == 'processed' %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ doc.status }}
+                        </span>
+                    </td>
+                    <td>{{ doc.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                    <td>
+                        <div class="btn-group">
+                            <a href="{{ url_for('documents.view', document_id=doc.id) }}" class="btn btn-sm btn-info">View</a>
+                            <form method="POST" action="{{ url_for('documents.delete', document_id=doc.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this document?');">
+                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        You haven't uploaded any documents yet. Click "Upload New Document" to get started.
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        let searchTimeout;
+        const searchInput = $('#searchInput');
+        const searchResults = $('#searchResults');
+
+        searchInput.on('input', function() {
+            clearTimeout(searchTimeout);
+            const query = $(this).val();
+
+            if (query.length < 2) {
+                searchResults.hide();
+                return;
+            }
+
+            searchTimeout = setTimeout(function() {
+                $.ajax({
+                    url: '{{ url_for("documents.search_suggestions") }}',
+                    data: { query: query },
+                    success: function(data) {
+                        if (data.results.length > 0) {
+                            let html = '';
+                            data.results.forEach(function(result) {
+                                const similarityPercentage = (result.similarity * 100).toFixed(1);
+                                html += `
+                                    <div class="search-result-item" onclick="window.location.href='${result.url}'">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div class="fw-bold">${result.filename}</div>
+                                            <span class="similarity-score">${similarityPercentage}% match</span>
+                                        </div>
+                                        <div class="small text-muted">${result.preview}</div>
+                                    </div>
+                                `;
+                            });
+                            searchResults.html(html).show();
+                        } else {
+                            searchResults.hide();
+                        }
+                    }
+                });
+            }, 300);
+        });
+
+        // Hide results when clicking outside
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest('.position-relative').length) {
+                searchResults.hide();
+            }
+        });
+    });
+</script>
+{% endblock %} 
