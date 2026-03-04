@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}View Document - {{ document.filename }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col">
+        <h2>{{ document.filename }}</h2>
+    </div>
+    <div class="col text-end">
+        <a href="{{ url_for('documents.index') }}" class="btn btn-secondary">Back to Documents</a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <div class="row">
+            <div class="col">Type: {{ document.file_type }}</div>
+            <div class="col">Size: {{ document.size|filesizeformat }}</div>
+            <div class="col">Status: 
+                <span class="badge {% if document.status == 'pending' %}bg-warning{% elif document.status == 'processed' %}bg-success{% else %}bg-danger{% endif %}">
+                    {{ document.status }}
+                </span>
+            </div>
+            <div class="col">Created: {{ document.created_at.strftime('%Y-%m-%d %H:%M') }}</div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if document.content %}
+            <pre class="content">{{ document.content }}</pre>
+        {% else %}
+            <div class="alert alert-info">
+                {% if document.status == 'pending' %}
+                    Document is still being processed...
+                {% else %}
+                    No content available for this document.
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 
