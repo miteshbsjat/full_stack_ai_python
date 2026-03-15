@@ -34,29 +34,33 @@ A modern document search application that allows users to upload, manage, and se
 sequenceDiagram
     participant User
     participant Browser
-    participant Flask App
-    participant Database
-    participant ML API
+    participant Flask as Flask API
+    participant Celery as Celery Worker
+    participant PostgreSQL
+    participant SentenceBERT as Sentence Transformers
 
-    User->>Browser: Enters search query
-    Browser->>Flask App: Sends query
-    Flask App->>Database: Queries documents
-    Database-->>Flask App: Returns document list
-    Flask App->>ML API: Sends query to ML API for embedding
-    ML API-->>Flask App: Returns query embedding
-    Flask App->>Database: Compares query embedding with document embeddings
-    Database-->>Flask App: Returns ranked document list
-    Flask App->>Browser: Sends search results
-    Browser-->>User: Displays search results
-
+    User->>Browser: Enter query (e.g., "natural language processing")
+    Browser->>Flask: POST /api/search?query=natural+language+processing
+    Flask->>Flask: Parse & validate query
+    alt First-time query
+        Flask->>SentenceBERT: Generate embedding for query
+        SentenceBERT-->>Flask: Return query embedding vector
+    end
+    Flask->>Flask: Match against stored document embeddings
+    Flask->>PostgreSQL: Query with hybrid (vector + full-text)
+    PostgreSQL-->>Flask: Return top-N matches with previews
+    Flask->>Celery: Async task: compute & store embeddings (if missing)
+    Flask-->>Browser: JSON: {results: [ {title, snippet, score} ]}
+    Browser->>Browser: Render results (highlight terms in snippet) <source_id data="3" title="views.py" />
+    Browser-->>User: Display search results
 ```
 
 ## Quick Start with Docker Compose
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd document-search
+git clone https://github.com/miteshbsjat/full_stack_ai_python
+cd full_stack_ai_python/
 ```
 
 2. Build and start the services:
