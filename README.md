@@ -28,6 +28,29 @@ A modern document search application that allows users to upload, manage, and se
 - React Query
 - React Router
 
+### Sequence Diagram
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Browser
+    participant Flask App
+    participant Database
+    participant ML API
+
+    User->>Browser: Enters search query
+    Browser->>Flask App: Sends query
+    Flask App->>Database: Queries documents
+    Database-->>Flask App: Returns document list
+    Flask App->>ML API: Sends query to ML API for embedding
+    ML API-->>Flask App: Returns query embedding
+    Flask App->>Database: Compares query embedding with document embeddings
+    Database-->>Flask App: Returns ranked document list
+    Flask App->>Browser: Sends search results
+    Browser-->>User: Displays search results
+
+```
+
 ## Quick Start with Docker Compose
 
 1. Clone the repository:
@@ -42,7 +65,7 @@ docker-compose up --build
 ```
 
 This will start:
-- Frontend at http://localhost:3000
+- Frontend at http://localhost:5002
 - Backend API at http://localhost:5000
 - PostgreSQL database
 - Redis

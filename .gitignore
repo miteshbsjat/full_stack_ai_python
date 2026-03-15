@@ -80,3 +80,4 @@ docker-compose.override.yml
 model_cache
 postgres_data
 uploads
+images
