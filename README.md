@@ -28,6 +28,61 @@ A modern document search application that allows users to upload, manage, and se
 - React Query
 - React Router
 
+### Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph Client_Layer [Client Layer]
+        User((User))
+        ReactApp[React Frontend - Material UI]
+    end
+
+    subgraph API_Gateway [Entry Point]
+        Backend[Flask API Service - Port 5002]
+    end
+
+    subgraph Processing_Layer [Async Processing and ML]
+        Worker[Celery Worker - Document Processor]
+        ModelAPI[Model API Service - Sentence Transformers]
+    end
+
+    subgraph Storage_Layer [Data and State]
+        Postgres[(PostgreSQL - Vector and Full-Text)]
+        Redis[(Redis - Message Broker)]
+        FS[[Local File System - Uploads and Models]]
+    end
+
+    %% Interactions
+    User <--> ReactApp
+    ReactApp <--> Backend
+
+    %% Backend Flow
+    Backend <--> Redis
+    Backend <--> Postgres
+    Backend --> ModelAPI
+
+    %% Worker Flow
+    Redis <--> Worker
+    Worker <--> Postgres
+    Worker --> ModelAPI
+
+    %% Volume Mounts
+    Backend -.-> FS
+    Worker -.-> FS
+    ModelAPI -.-> FS
+
+    %% Styling
+    style User fill:#f9f,stroke:#333,stroke-width:2px
+    style ReactApp fill:#61DAFB,stroke:#333,stroke-width:2px,color:#000
+    style Backend fill:#4CAF50,stroke:#333,stroke-width:2px,color:#fff
+    style Worker fill:#FF9800,stroke:#333,stroke-width:2px,color:#fff
+    style ModelAPI fill:#E91E63,stroke:#333,stroke-width:2px,color:#fff
+    style Postgres fill:#336791,stroke:#333,stroke-width:2px,color:#fff
+    style Redis fill:#D82C20,stroke:#333,stroke-width:2px,color:#fff
+    style FS fill:#9E9E9E,stroke:#333,stroke-dasharray: 5 5
+
+```
+
 ### Sequence Diagram
 
 ```mermaid
