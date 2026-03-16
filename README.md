@@ -1,4 +1,4 @@
-# Document Search Application
+# An App for Document Search Using Semantic Search
 
 A modern document search application that allows users to upload, manage, and search through documents using semantic search capabilities.
 
